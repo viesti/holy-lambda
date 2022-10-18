@@ -272,10 +272,7 @@
       (fallback-command native-image "native-image"))))
 
 (when-not (or HL_NO_DOCKER?
-              (and (= OS :unix)
-                   (= (:exit (csh/sh "pgrep" "-f" "docker")) 0))
-              (and (= OS :mac)
-                   (= (:exit (csh/sh "pgrep" "-f" "Docker.app")) 0)))
+              (= (:exit (csh/sh "docker" "ps")) 0))
   (hpr (pre "Docker is not running! Enable and run docker first before using holy-lambda!"))
   (System/exit 1))
 
