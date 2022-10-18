@@ -421,16 +421,11 @@
   (if-not HL_NO_DOCKER?
     (apply shell
            (concat
-            ["docker run --rm"
-             "-e" "AWS_CREDENTIAL_PROFILES_FILE=/.aws/credentials"
-             "-e" "AWS_CONFIG_FILE=/.aws/config"
-             "-e" "AWS_SHARED_CREDENTIALS_FILE=/.aws/credentials"
-             "-v" (str (.getAbsolutePath (io/file "")) ":/project")
-             "-v" (str AWS_DIR ":" "/.aws:ro")]
-            (when-let [aws-access-key @AWS_ACCESS_KEY_ID]
-              ["-e" (str "AWS_ACCESS_KEY_ID=" aws-access-key)])
-            (when-let [aws-secret-access-key @AWS_SECRET_ACCESS_KEY]
-              ["-e" (str "AWS_SECRET_ACCESS_KEY=" aws-secret-access-key)])
+             ["docker run --rm"
+              "-e" (str "AWS_ACCESS_KEY_ID=" (System/getenv "AWS_ACCESS_KEY_ID"))
+              "-e" (str "AWS_SECRET_ACCESS_KEY=" (System/getenv "AWS_SECRET_ACCESS_KEY"))
+              "-e" (str "AWS_SECURITY_TOKEN=" (System/getenv "AWS_SECURITY_TOKEN"))
+             "-v" (str (.getAbsolutePath (io/file "")) ":/project")]
             (when DOCKER_NETWORK [(str "--network=" DOCKER_NETWORK)])
             (vec (flatten (mapv (fn [path] ["-v" path]) DOCKER_VOLUMES)))
             ["--user" USER_GID
