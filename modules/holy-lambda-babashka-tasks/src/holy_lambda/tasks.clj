@@ -422,15 +422,17 @@
     (apply shell
            (concat
              ["docker run --rm"
-              "-e" (str "AWS_ACCESS_KEY_ID=" (System/getenv "AWS_ACCESS_KEY_ID"))
-              "-e" (str "AWS_SECRET_ACCESS_KEY=" (System/getenv "AWS_SECRET_ACCESS_KEY"))
-              "-e" (str "AWS_SECURITY_TOKEN=" (System/getenv "AWS_SECURITY_TOKEN"))
-             "-v" (str (.getAbsolutePath (io/file "")) ":/project")]
-            (when DOCKER_NETWORK [(str "--network=" DOCKER_NETWORK)])
-            (vec (flatten (mapv (fn [path] ["-v" path]) DOCKER_VOLUMES)))
-            ["--user" USER_GID
-             (str "-i" (when TTY? "t")) IMAGE_CORDS
-             "/bin/bash" "-c" command]))
+              "-v" (str (.getAbsolutePath (io/file "")) ":/project")]
+             (flatten (keep (fn [[k v]]
+                              (when (.startsWith k "AWS")
+                                ["-e" (str k "=" v)]))
+                            (System/getenv)))
+             (when DOCKER_NETWORK
+               [(str "--network=" DOCKER_NETWORK)])
+             (vec (flatten (mapv (fn [path] ["-v" path]) DOCKER_VOLUMES)))
+             ["--user" USER_GID
+              (str "-i" (when TTY? "t")) IMAGE_CORDS
+              "/bin/bash" "-c" command]))
     (shell "bash" "-c" command)))
 
 (defn hl:docker:run
